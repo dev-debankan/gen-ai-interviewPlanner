@@ -80,7 +80,7 @@ const Home = () => {
         }
 
         try {
-            const response = await axios.post("http://localhost:3000/api/interview", formData, {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/interview`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data"
                 },
@@ -211,17 +211,17 @@ const Home = () => {
                         <span className="info-icon">ℹ️</span>
                         <p>Either a <strong>Resume</strong> or a <strong>Self Description</strong> is required to generate a personalized plan.</p>
                     </div>
-                </div>
- 
-                {/* Footer of the panel */}
-                <div className="panel-footer" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    {error && <div style={{ color: '#ff2a6d', marginBottom: '1rem' }}>{error}</div>}
-                    <div className="processing-time">
-                        <span className="sparkle">✨</span> AI-Powered Strategy Generation • Approx 30s
+
+                    {/* Generate Button inside right panel */}
+                    <div className="panel-footer-inline">
+                        {error && <div className="error-msg">{error}</div>}
+                        <div className="processing-time">
+                            <span className="sparkle">✨</span> AI-Powered Strategy Generation • Approx 30s
+                        </div>
+                        <button className="generate-btn primary-button" onClick={handleGenerate} disabled={isLoading}>
+                            <span className="btn-icon"></span> {isLoading ? "Generating Strategy..." : "Generate My Interview Strategy"}
+                        </button>
                     </div>
-                    <button className="generate-btn primary-button" onClick={handleGenerate} disabled={isLoading}>
-                        <span className="btn-icon"></span> {isLoading ? "Generating Strategy..." : "Generate My Interview Strategy"}
-                    </button>
                 </div>
             </main>
 

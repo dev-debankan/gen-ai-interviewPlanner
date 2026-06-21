@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import '../../interview/style/interview.scss';
-import { useNavigate,useParams }     from 'react-router-dom';
-import { generateResumePdf } from '../../interview/services/interview.api';
+import { generateResumePdf, generateInterviewReportId } from '../../interview/services/interview.api';
+
 // Dummy data from your exact provided JSON
 const dummyData = {
   "_id": {
@@ -133,11 +133,38 @@ const dummyData = {
 const InterviewReport = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    // Use the fetched data passed from Home component via state, fallback to dummyData
-    const data = location.state?.reportData || dummyData;
-    const [activeTab, setActiveTab] = useState("Technical questions");
     const { interviewId } = useParams();
+    
+    // Initialize with state data if available, otherwise null
+    const [data, setData] = useState(location.state?.reportData || null);
+    const [isLoading, setIsLoading] = useState(!data);
+    const [activeTab, setActiveTab] = useState("Technical questions");
     const [isDownloading, setIsDownloading] = useState(false);
+
+    useEffect(() => {
+        const fetchReport = async () => {
+            if (!data && interviewId) {
+                try {
+                    setIsLoading(true);
+                    const response = await generateInterviewReportId({ interviewId });
+                    if (response && response.interviewReport) {
+                        setData(response.interviewReport);
+                    } else {
+                        setData(dummyData);
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch interview report:", error);
+                    setData(dummyData); // Fallback on error
+                } finally {
+                    setIsLoading(false);
+                }
+            } else if (!data) {
+                setData(dummyData);
+                setIsLoading(false);
+            }
+        };
+        fetchReport();
+    }, [interviewId, data]);
 
     const handleDownloadResume = async () => {
         if (!data || !data._id) {
@@ -146,7 +173,7 @@ const InterviewReport = () => {
         }
         try {
             setIsDownloading(true);
-            const reportId = interviewId || data._id; // Fallback to dummy data ID if interviewId from params is not present (for test mode)
+            const reportId = interviewId || data._id; // Fallback to dummy data ID if interviewId from params is not present
             const idToUse = typeof reportId === 'object' && reportId.$oid ? reportId.$oid : reportId;
             
             const blob = await generateResumePdf({ interviewId: idToUse });
@@ -165,6 +192,14 @@ const InterviewReport = () => {
             setIsDownloading(false);
         }
     };
+
+    if (isLoading || !data) {
+        return (
+            <div className="interview-layout" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#0a0a0a', color: '#fff' }}>
+                <div className="loading-state">Loading your report...</div>
+            </div>
+        );
+    }
 
     return (
         <div className="interview-layout">
