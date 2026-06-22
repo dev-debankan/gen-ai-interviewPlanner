@@ -2,7 +2,15 @@ const jwt= require("jsonwebtoken")
 const tokenBlacklistModel= require("../models/balcklist.model")
 
 async function authUser(req,res,next){
-    const token = req.cookies.token
+    // Check cookie first, then fall back to Authorization header
+    let token = req.cookies.token
+    if(!token && req.headers.authorization){
+        const parts = req.headers.authorization.split(' ')
+        if(parts.length === 2 && parts[0] === 'Bearer'){
+            token = parts[1]
+        }
+    }
+
     if(!token){
         return res.status(401).json({
             message:"Token not provided"

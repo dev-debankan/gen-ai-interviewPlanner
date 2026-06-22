@@ -80,9 +80,11 @@ const Home = () => {
         }
 
         try {
+            const token = localStorage.getItem("token");
             const response = await axios.post(`${import.meta.env.VITE_API_URL || "http://localhost:3000"}/api/interview`, formData, {
                 headers: {
-                    "Content-Type": "multipart/form-data"
+                    "Content-Type": "multipart/form-data",
+                    ...(token ? { "Authorization": `Bearer ${token}` } : {})
                 },
                 withCredentials: true
             });

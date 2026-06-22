@@ -7,6 +7,15 @@ const api= axios.create({
     withCredentials:true
 })
 
+// Attach JWT token from localStorage to every request
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem("token")
+    if(token){
+        config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+})
+
 
 
 //register api call
@@ -14,6 +23,9 @@ const api= axios.create({
     const response= await api.post('/api/auth/register',{
         username, email, password
     })
+    if(response.data.token){
+        localStorage.setItem("token", response.data.token)
+    }
     return response.data
  }
 
@@ -22,12 +34,16 @@ const api= axios.create({
     const response= await api.post("/api/auth/login",{
         email, password
     })
+    if(response.data.token){
+        localStorage.setItem("token", response.data.token)
+    }
     return response.data;
  }
 
  //logout api call 
  export async function logout(){
     const response = await api.get("/api/auth/logout")
+    localStorage.removeItem("token")
     return response.data
  }//getMe api call
 
